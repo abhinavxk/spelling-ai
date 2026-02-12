@@ -157,12 +157,35 @@
     .feedback { text-align: center; font-weight: 700; padding: 10px; min-height: 44px; }
     .ok { color: #2ecc71; }
     .bad { color: #e74c3c; }
+    .word-pill {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 12px;
+      white-space: nowrap;
+      background: rgba(255,255,255,0.9);
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .word-pill.active {
+      background: var(--active-blue);
+      color: #fff;
+    }
   </style>
 </head>
 <body>
 
 <div class="wrap">
   <div id="practicePage" class="page active">
+    <div class="glass-container" style="padding: 15px; margin-bottom: 10px;">
+      <span class="slider-label">Tap a word to practice</span>
+      <div style="margin-bottom: 12px; position: relative;">
+        <input id="pillSearch" type="text" placeholder="Search your words..." 
+               style="font-size: 13px; padding: 10px 15px; margin-bottom: 0; border-radius: 15px; background: rgba(255,255,255,0.4);">
+      </div>
+      <div id="wordPillContainer" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none;">
+      </div>
+    </div>
     <div class="glass-container">
       <div class="header">
         <div class="profile-pill"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Av">Practice</div>
@@ -319,6 +342,12 @@
     }
   }
 
+  const originalSelectWord = selectWord;
+  selectWord = async function(w) {
+    await originalSelectWord(w);
+    renderWordPills();
+  };
+
   function checkAnswer() {
     const typed = norm($('typingInput').value);
     const target = state.currentWord;
@@ -365,11 +394,64 @@
     });
   }
 
+  function renderWordPills() {
+    const container = $('wordPillContainer');
+    container.innerHTML = '';
+
+    state.data.words.forEach(word => {
+      const pill = document.createElement('div');
+      pill.textContent = word;
+      pill.style.cssText = `
+        background: rgba(255,255,255,0.5);
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+        cursor: pointer;
+        border: 1px solid rgba(255,255,255,0.3);
+        transition: all 0.2s;
+      `;
+
+      if (norm(word) === state.currentWord) {
+        pill.style.background = 'var(--active-blue)';
+        pill.style.color = 'white';
+      }
+
+      pill.onclick = () => {
+        pill.style.background = 'var(--active-blue)';
+        pill.style.color = 'white';
+        selectWord(word);
+      };
+
+      container.appendChild(pill);
+    });
+  }
+
+  // SEARCH & FILTER LOGIC
+  $('pillSearch').oninput = (e) => {
+    const term = norm(e.target.value);
+    const pills = $('wordPillContainer').children;
+
+    Array.from(pills).forEach(pill => {
+      const word = norm(pill.textContent);
+      pill.style.display = word.includes(term) ? 'block' : 'none';
+    });
+  };
+
+  const originalRenderPills = renderWordPills;
+  renderWordPills = function() {
+    originalRenderPills();
+    $('pillSearch').dispatchEvent(new Event('input'));
+  };
+
   window.deleteWord = (w) => {
     if(confirm(`Remove "${w}"?`)) {
       state.data.words = state.data.words.filter(word => word !== w);
+      if (state.currentWord === norm(w)) state.currentWord = null;
       saveData();
       renderScorecard();
+      renderWordPills();
     }
   }
 
@@ -380,6 +462,7 @@
       saveData();
       $('newWordInput').value = '';
       renderScorecard();
+      renderWordPills();
     }
   };
 
@@ -459,6 +542,7 @@
   }
 
   nextWord();
+  renderWordPills();
 </script>
 </body>
 </html>
