@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Glassmorphism Spelling Pro</title>
+  <style>
+    :root {
+      --active-blue: #4d7fff;
+      --glass: rgba(255, 255, 255, 0.35);
+      --glass-thick: rgba(255, 255, 255, 0.7);
+      --text: #1d1d1f;
+      --muted: #5a5a5e;
+      --bg-gradient: linear-gradient(135deg, #a8caba 0%, #5d4157 100%);
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, system-ui, sans-serif;
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+      min-height: 100vh;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 16px 120px;
+    }
+
+    .wrap { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 20px; }
+
+    .glass-container {
+      background: var(--glass);
+      backdrop-filter: blur(25px) saturate(180%);
+      -webkit-backdrop-filter: blur(25px) saturate(180%);
+      border-radius: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      padding: 30px 20px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+    }
+
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+    .profile-pill { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+    .profile-pill img { width: 32px; height: 32px; border-radius: 50%; background: #eee; }
+
+    .word-hero {
+      background: var(--glass-thick);
+      border-radius: 25px;
+      padding: 40px 20px;
+      text-align: center;
+      box-shadow: inset 2px 2px 5px rgba(0,0,0,0.03);
+      margin-bottom: 20px;
+    }
+    .big { font-size: 48px; font-weight: 800; margin: 10px 0; letter-spacing: -1.5px; }
+
+    input, textarea {
+      width: 100%;
+      background: white;
+      border: none;
+      border-radius: 20px;
+      padding: 16px;
+      font-size: 17px;
+      margin-bottom: 12px;
+      outline: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .dark-strip {
+      background: #1c1c1e;
+      border-radius: 24px;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+    .dark-strip button {
+      background: #3a3a3c;
+      border: none;
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .dark-strip button.active-glow {
+      background: var(--active-blue);
+      border: 3px solid #00fff2;
+      box-shadow: 0 0 15px #00fff2;
+    }
+    .dark-strip button.mic-active {
+      box-shadow: 0 0 20px #ff3b30;
+    }
+    .wave-container {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      gap: 3px;
+      height: 20px;
+      margin-top: 10px;
+    }
+    .wave-bar {
+      width: 3px;
+      height: 100%;
+      background: var(--active-blue);
+      animation: wave-anim 0.5s ease-in-out infinite alternate;
+    }
+    @keyframes wave-anim {
+      from { height: 5px; }
+      to { height: 20px; }
+    }
+
+    .slider-row { margin: 20px 0; }
+    .slider-label { font-size: 11px; font-weight: 800; color: var(--muted); margin-bottom: 8px; display: block; text-transform: uppercase; }
+    
+    .meaning-box { 
+        background: rgba(255,255,255,0.5); 
+        padding: 15px; 
+        border-radius: 18px; 
+        font-size: 13px; 
+        line-height: 1.4; 
+        margin-top: 15px; 
+        border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .add-section { margin-top: 25px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.2); }
+    .primary-btn { background: var(--active-blue); color: white; border: none; border-radius: 15px; padding: 12px; width: 100%; font-weight: 700; cursor: pointer; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+    th { text-align: left; padding: 10px; color: var(--muted); border-bottom: 1px solid rgba(0,0,0,0.05); }
+    td { padding: 12px 10px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+    .del-btn { color: #ff3b30; border: none; background: none; font-weight: bold; cursor: pointer; }
+
+    .nav-bar {
+      position: fixed;
+      bottom: 25px;
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(15px);
+      padding: 12px 25px;
+      border-radius: 35px;
+      display: flex;
+      gap: 30px;
+      border: 1px solid white;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+      z-index: 1000;
+    }
+    .nav-bar button { background: none; border: none; font-weight: 700; color: var(--muted); cursor: pointer; }
+    .nav-bar button.active { color: var(--active-blue); }
+
+    .page { display: none; width: 100%; }
+    .page.active { display: block; }
+    .feedback { text-align: center; font-weight: 700; padding: 10px; min-height: 44px; }
+    .ok { color: #2ecc71; }
+    .bad { color: #e74c3c; }
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+  <div id="practicePage" class="page active">
+    <div class="glass-container">
+      <div class="header">
+        <div class="profile-pill"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Av">Practice</div>
+        <div id="sessionScore" style="font-weight: 700;">0/0</div>
+      </div>
+
+      <div class="word-hero">
+        <div style="display:flex; justify-content:center; gap:8px; margin-bottom:10px;">
+          <span id="difficultyTag" style="font-size:10px; background:var(--active-blue); color:white; padding:2px 8px; border-radius:10px; font-weight:bold; opacity:0.8;">NEW</span>
+          <span id="phoneticText" style="font-size:10px; color:var(--muted); font-family:monospace;">/---/</span>
+        </div>
+        <div class="big" id="wordDisplay">---</div>
+        <div id="feedback" class="feedback"></div>
+      </div>
+
+      <input id="typingInput" type="text" placeholder="Type answer..." autocomplete="off" spellcheck="false" />
+
+      <div class="dark-strip">
+        <button id="speakBtn">🔊</button>
+        <button id="revealBtn">👁️</button>
+        <button id="micBtn" style="background:#ff3b30; color:white;">🎤</button>
+        <button id="nextBtn">➡️</button>
+        <button id="submitBtn" class="active-glow">✓</button>
+      </div>
+      <div class="wave-container" id="wave">
+        <div class="wave-bar" style="animation-delay: 0.1s"></div>
+        <div class="wave-bar" style="animation-delay: 0.2s"></div>
+        <div class="wave-bar" style="animation-delay: 0.3s"></div>
+        <div class="wave-bar" style="animation-delay: 0.4s"></div>
+      </div>
+
+      <div id="meaningBox" class="meaning-box" style="display:none;">
+        <span class="slider-label" style="margin-bottom:4px">Accurate Meaning</span>
+        <div id="meaningText" style="font-style: italic;">Fetching...</div>
+      </div>
+
+      <div class="add-section">
+        <span class="slider-label">Quick Add</span>
+        <input id="newWordInput" type="text" placeholder="New word..." style="font-size:14px; padding:12px;">
+        <button id="addNewBtn" class="primary-btn">Add Word</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="historyPage" class="page">
+    <div class="glass-container">
+      <div class="header"><div class="profile-pill">Performance</div></div>
+      <div style="max-height: 400px; overflow-y: auto;">
+        <table>
+          <thead><tr><th>Word</th><th>Acc%</th><th>Action</th></tr></thead>
+          <tbody id="scoreBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="nav-bar">
+  <button id="navPractice" class="active">🎯 Practice</button>
+  <button id="navHistory">📈 Stats</button>
+</div>
+
+<script>
+  const STORAGE_KEY = 'glass_spelling_v_accuracy';
+  const $ = (id) => document.getElementById(id);
+  const norm = (s) => (s || '').trim().toLowerCase();
+
+  let state = {
+    data: JSON.parse(localStorage.getItem(STORAGE_KEY)) || { 
+      words: ['Magnificent', 'Ephemeral', 'Resilient'], 
+      stats: {}, 
+      meanings: {},
+      phonetics: {}
+    },
+    currentWord: null,
+    session: { total: 0, correct: 0 }
+  };
+
+  if (!state.data.meanings) state.data.meanings = {};
+  if (!state.data.phonetics) state.data.phonetics = {};
+
+  function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data)); }
+
+  function speak(text) {
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.rate = 0.9;
+    window.speechSynthesis.speak(utter);
+  }
+
+  // ACCURATE DICTIONARY FETCH
+  async function fetchAccurateMeaning(word) {
+    const w = norm(word);
+    if (state.data.phonetics[w]) {
+      $('phoneticText').textContent = state.data.phonetics[w];
+    } else {
+      $('phoneticText').textContent = '/---/';
+    }
+    if (state.data.meanings[w]) return state.data.meanings[w];
+    
+    try {
+      const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${w}`);
+      if (!res.ok) return "No official definition found.";
+      const data = await res.json();
+
+      const phonetic =
+        data[0]?.phonetic ||
+        data[0]?.phonetics?.find(p => p?.text)?.text ||
+        '/---/';
+      $('phoneticText').textContent = phonetic;
+      state.data.phonetics[w] = phonetic;
+      
+      // Get the first definition from the most common part of speech
+      const definition = data[0].meanings[0].definitions[0].definition;
+      state.data.meanings[w] = definition;
+      saveData();
+      return definition;
+    } catch {
+      $('phoneticText').textContent = '/---/';
+      return "Unable to fetch definition (check connection).";
+    }
+  }
+
+  function updateDifficultyTag(word) {
+    const s = state.data.stats[norm(word)];
+    const tag = $('difficultyTag');
+    if (!s || s.attempts < 3) {
+      tag.textContent = "NEW";
+      tag.style.background = "var(--active-blue)";
+    } else if (s.correct / s.attempts > 0.8) {
+      tag.textContent = "MASTERED";
+      tag.style.background = "#2ecc71";
+    } else {
+      tag.textContent = "HARD";
+      tag.style.background = "#e67e22";
+    }
+  }
+
+  async function selectWord(w) {
+    state.currentWord = norm(w);
+    $('wordDisplay').textContent = state.currentWord;
+    $('feedback').textContent = '';
+    $('feedback').className = 'feedback';
+    $('typingInput').value = '';
+    $('meaningBox').style.display = 'block';
+    $('meaningText').textContent = "Fetching accurate definition...";
+    updateDifficultyTag(state.currentWord);
+    
+    speak(state.currentWord);
+
+    const accurateDef = await fetchAccurateMeaning(state.currentWord);
+    if (state.currentWord === norm(w)) {
+      $('meaningText').textContent = accurateDef;
+    }
+  }
+
+  function checkAnswer() {
+    const typed = norm($('typingInput').value);
+    const target = state.currentWord;
+    if (!target) return;
+
+    const isCorrect = typed === target;
+    const s = state.data.stats[target] || { attempts: 0, correct: 0, history: [] };
+    s.attempts++;
+    if (isCorrect) s.correct++;
+    s.history.push(isCorrect ? 1 : 0);
+    state.data.stats[target] = s;
+    
+    state.session.total++;
+    if (isCorrect) state.session.correct++;
+    
+    $('feedback').textContent = isCorrect ? "Perfect! ✓" : `Oops! It was "${target}"`;
+    $('feedback').className = "feedback " + (isCorrect ? "ok" : "bad");
+    $('sessionScore').textContent = `${state.session.correct}/${state.session.total}`;
+    updateDifficultyTag(target);
+    
+    saveData();
+    if (isCorrect) setTimeout(nextWord, 1500);
+  }
+
+  function nextWord() {
+    if (state.data.words.length === 0) return;
+    const w = state.data.words[Math.floor(Math.random() * state.data.words.length)];
+    selectWord(w);
+  }
+
+  function renderScorecard() {
+    const body = $('scoreBody');
+    body.innerHTML = '';
+    state.data.words.forEach(w => {
+      const s = state.data.stats[norm(w)] || { attempts: 0, correct: 0 };
+      const acc = s.attempts ? Math.round((s.correct / s.attempts) * 100) : 0;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${w}</td>
+        <td>${acc}%</td>
+        <td><button class="del-btn" onclick="deleteWord('${w}')">DEL</button></td>
+      `;
+      body.appendChild(tr);
+    });
+  }
+
+  window.deleteWord = (w) => {
+    if(confirm(`Remove "${w}"?`)) {
+      state.data.words = state.data.words.filter(word => word !== w);
+      saveData();
+      renderScorecard();
+    }
+  }
+
+  $('addNewBtn').onclick = () => {
+    const val = $('newWordInput').value.trim();
+    if (val && !state.data.words.includes(val)) {
+      state.data.words.push(val);
+      saveData();
+      $('newWordInput').value = '';
+      renderScorecard();
+    }
+  };
+
+  $('navPractice').onclick = () => {
+    $('practicePage').classList.add('active'); $('historyPage').classList.remove('active');
+    $('navPractice').classList.add('active'); $('navHistory').classList.remove('active');
+  };
+  $('navHistory').onclick = () => {
+    $('historyPage').classList.add('active'); $('practicePage').classList.remove('active');
+    $('navHistory').classList.add('active'); $('navPractice').classList.remove('active');
+    renderScorecard();
+  };
+
+  $('submitBtn').onclick = checkAnswer;
+  $('nextBtn').onclick = nextWord;
+  $('speakBtn').onclick = () => speak(state.currentWord);
+  $('revealBtn').onclick = () => { $('typingInput').value = state.currentWord; };
+  $('typingInput').onkeydown = (e) => { if (e.key === 'Enter') checkAnswer(); };
+
+  // SPEECH RECOGNITION (VOICE-TO-TEXT)
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (SpeechRecognition) {
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+
+    $('micBtn').onclick = () => {
+      if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+        alert("Web Speech AI requires an HTTPS connection to work.");
+        return;
+      }
+
+      try {
+        recognition.start();
+        $('micBtn').classList.add('mic-active');
+        $('feedback').textContent = "Listening...";
+        $('feedback').className = "feedback";
+      } catch (e) {
+        recognition.stop();
+      }
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      $('typingInput').value = transcript;
+      $('micBtn').classList.remove('mic-active');
+      checkAnswer();
+    };
+
+    recognition.onerror = (event) => {
+      $('micBtn').classList.remove('mic-active');
+      console.error("Speech Error:", event.error);
+
+      if (event.error === 'not-allowed') {
+        $('feedback').textContent = "Permission Blocked! Check settings.";
+      } else if (event.error === 'no-speech') {
+        $('feedback').textContent = "No speech detected.";
+      } else {
+        $('feedback').textContent = "Mic Error: " + event.error;
+      }
+      $('feedback').className = "feedback bad";
+    };
+
+    recognition.onstart = () => {
+      $('wave').style.display = 'flex';
+    };
+
+    recognition.onend = () => {
+      $('micBtn').classList.remove('mic-active');
+      $('wave').style.display = 'none';
+    };
+  } else {
+    $('micBtn').style.opacity = "0.3";
+    $('micBtn').onclick = () => alert("Your browser does not support Voice AI. Please use Chrome or Safari.");
+    $('wave').style.display = 'none';
+  }
+
+  nextWord();
+</script>
+</body>
+</html>
